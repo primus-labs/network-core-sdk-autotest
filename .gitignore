@@ -114,3 +114,6 @@ pids
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Test results directory
+results/
