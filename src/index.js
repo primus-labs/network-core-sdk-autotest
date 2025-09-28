@@ -2,7 +2,7 @@
  * Network Core SDK Auto Test - Main Entry Point
  */
 
-const { PrimusNetwork } = require('@primuslabs/network-core-sdk');
+const { PrimusNetwork } = require('@fksyuan/network-core-sdk');
 const { ethers } = require('ethers');
 const dotenv = require('dotenv');
 const fs = require('fs');
