@@ -32,9 +32,15 @@ function initializeResultsFile() {
     fs.mkdirSync(resultsDir, { recursive: true });
   }
 
-  // Initialize file with empty results array
+  // Initialize file with empty results array and statistics
   const initialData = {
     timestamp: new Date().toISOString(),
+    statistics: {
+      totalRuns: 0,
+      successfulRuns: 0,
+      failedRuns: 0,
+      successRate: 0
+    },
     results: []
   };
 
@@ -45,16 +51,30 @@ function initializeResultsFile() {
 /**
  * Append single test result to file
  */
-function appendResultToFile(resultData) {
+function appendResultToFile(resultData, isSuccess = true) {
   // Read existing data
   const existingData = JSON.parse(fs.readFileSync(resultsFilePath, 'utf8'));
 
   // Add new result
   existingData.results.push(resultData);
 
+  // Update statistics
+  existingData.statistics.totalRuns++;
+  if (isSuccess) {
+    existingData.statistics.successfulRuns++;
+  } else {
+    existingData.statistics.failedRuns++;
+  }
+
+  // Calculate success rate
+  existingData.statistics.successRate = existingData.statistics.totalRuns > 0
+    ? (existingData.statistics.successfulRuns / existingData.statistics.totalRuns * 100).toFixed(2)
+    : 0;
+
   // Write back to file
   fs.writeFileSync(resultsFilePath, JSON.stringify(existingData, null, 2));
   console.log(`📄 Result appended to: ${resultsFilePath}`);
+  console.log(`📊 Statistics - Total: ${existingData.statistics.totalRuns}, Success: ${existingData.statistics.successfulRuns}, Failed: ${existingData.statistics.failedRuns}, Success Rate: ${existingData.statistics.successRate}%`);
 }
 
 
@@ -139,11 +159,12 @@ async function main() {
               testCaseName: testCase.name,
               attestationTime: attestResult[0].attestationTime,
               attestorUrl: attestResult[0].attestorUrl,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              status: 'success'
             };
 
             // Append result to file immediately
-            appendResultToFile(resultData);
+            appendResultToFile(resultData, true);
 
             const verifyStartTime = Date.now();
             const taskResult = await primusNetwork.verifyAndPollTaskResult({
@@ -162,6 +183,19 @@ async function main() {
 
           } catch (error) {
             console.error(`❌ Round ${round} - ${testCase.name} - Test failed:`, error.message);
+
+            // Record failed test result
+            const failedResultData = {
+              round: round,
+              testCaseName: testCase.name,
+              error: error.message,
+              timestamp: new Date().toISOString(),
+              status: 'failed'
+            };
+
+            // Append failed result to file
+            appendResultToFile(failedResultData, false);
+
             // Continue with next test case instead of interrupting the entire flow
             continue;
           }
@@ -171,6 +205,14 @@ async function main() {
       }
 
       console.log('\n🎉 All test cases completed!');
+
+      // Display final statistics
+      const finalData = JSON.parse(fs.readFileSync(resultsFilePath, 'utf8'));
+      console.log('\n📊 Final Statistics:');
+      console.log(`   Total Runs: ${finalData.statistics.totalRuns}`);
+      console.log(`   Successful: ${finalData.statistics.successfulRuns}`);
+      console.log(`   Failed: ${finalData.statistics.failedRuns}`);
+      console.log(`   Success Rate: ${finalData.statistics.successRate}%`);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Unexpected test error:', error);

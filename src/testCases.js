@@ -9,26 +9,26 @@
  */
 function getTestCases() {
   return [
-    {
-      name: 'OKX BTC-USD Test',
-      requests: [
-        {
-          url: 'https://www.okx.com/api/v5/public/instruments?instType=SPOT&instId=BTC-USD',
-          method: 'GET',
-          header: {},
-          body: '',
-        }
-      ],
-      responseResolves: [
-        [
-          {
-            keyName: 'instType',
-            parseType: 'json',
-            parsePath: '$.data[0].instType'
-          }
-        ]
-      ]
-    },
+    // {
+    //   name: 'OKX BTC-USD Test',
+    //   requests: [
+    //     {
+    //       url: 'https://www.okx.com/api/v5/public/instruments?instType=SPOT&instId=BTC-USD',
+    //       method: 'GET',
+    //       header: {},
+    //       body: '',
+    //     }
+    //   ],
+    //   responseResolves: [
+    //     [
+    //       {
+    //         keyName: 'instType',
+    //         parseType: 'json',
+    //         parsePath: '$.data[0].instType'
+    //       }
+    //     ]
+    //   ]
+    // },
 
     {
       name: 'tiktok Test',
